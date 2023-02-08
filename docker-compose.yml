@@ -1,0 +1,196 @@
+version: '3'
+services:
+  memcached:
+    container_name: memcached
+    build: 
+      context: ../Cytomine_bootstrap
+      dockerfile: ../cytomine-docker-compose/docker/memcached/Dockerfile
+    networks:
+      - cytomine
+
+  rabbitmq:
+    container_name: rabbitmq
+    image: cytomine/rabbitmq:v1.2.0
+    environment:
+      - RABBITMQ_PASS=${RABBITMQ_PASS}
+    ports:
+      - 5672:5672
+      - 15672:15672
+    networks:
+      - cytomine
+
+  postgresql:
+    container_name: postgresql
+    image: cytomine/postgis:v2.1.0
+#    mem_limit: 8g
+    volumes:
+      - postgis_data:/var/lib/postgresql:rw
+    networks:
+      - cytomine
+
+  mongodb:
+    container_name: mongodb
+    image: cytomine/mongodb:v1.1.2
+    volumes:
+      - mongodb_data:/data/db:rw
+    networks:
+      - cytomine
+
+  slurm:
+    container_name: slurm
+    hostname: cytomine-slurm
+    build: 
+      context: ../Cytomine_bootstrap
+      dockerfile: ../cytomine-docker-compose/docker/slurm/Dockerfile
+    privileged: true
+    volumes:
+      - slurm_data:/var/lib/mysql:rw
+      - singularity_images:/data/softwares/images:rw
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - cytomine
+
+  iip_off:
+    container_name: iipOff
+    build: 
+      context: ../Cytomine_bootstrap
+      dockerfile: ../cytomine-docker-compose/docker/iipOff/Dockerfile
+    depends_on:
+      - memcached
+    privileged: true
+    environment:
+      - NB_IIP_PROCESS=10
+    volumes:
+      - /data/images:/data/images:rw
+    links:
+      - memcached:memcached
+    networks:
+      - cytomine
+
+  iip_cyto:
+    container_name: iipCyto
+    build: 
+      context: ../Cytomine_bootstrap
+      dockerfile: ../cytomine-docker-compose/docker/iipCyto/Dockerfile
+    privileged: true
+    depends_on:
+      - memcached
+    environment:
+      - NB_IIP_PROCESS=10
+    volumes:
+      - /data/images:/data/images:rw
+    links:
+      - memcached:memcached
+    networks:
+      - cytomine
+
+  bioformat:
+    container_name: bioformat
+    image: cytomine/bioformat:v1.2.0
+    environment:
+      - BIOFORMAT_PORT=4321
+    volumes:
+      - /data/images:/data/images:rw
+    networks:
+      - cytomine
+    
+  ims:
+    container_name: ims
+    build: 
+      context: ../Cytomine_bootstrap
+      dockerfile: ../cytomine-docker-compose/docker/ims/Dockerfile
+    depends_on:
+      - bioformat
+    environment:
+      - IMS_STORAGE_PATH=/data/images
+    volumes:
+      - /data/images:/data/images:rw
+      - /data/images/_buffer:/tmp/uploaded:rw
+    links:
+      - bioformat:bioformat
+    networks:
+      - cytomine
+
+  core:
+    container_name: core
+    build: 
+      context: ../Cytomine_bootstrap
+      dockerfile: ../cytomine-docker-compose/docker/core/Dockerfile
+    ports:
+      - 8080:8080
+    depends_on:
+      - postgresql
+      - mongodb
+      - rabbitmq
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /data/softwares/code:/data/softwares/code:rw
+    links:
+      - postgresql:postgresql
+      - mongodb:mongodb
+      - rabbitmq:rabbitmq
+    networks:
+      - cytomine
+
+  web_ui:
+    container_name: web_UI
+    build: 
+      context: ../Cytomine_bootstrap
+      dockerfile: ../cytomine-docker-compose/docker/web_UI/Dockerfile
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - cytomine
+  
+  nginx:
+    container_name: nginx
+    build: 
+      context: ../Cytomine_bootstrap
+      dockerfile: ../cytomine-docker-compose/docker/nginx/Dockerfile
+    depends_on:
+      - ims
+      - iip_cyto
+      - core
+      - iip_off
+      - web_ui
+    links:
+      - ims:ims
+      - iip_cyto:iip_cyto
+      - core:core
+      - iip_off:iip_off
+      - web_ui:web_ui
+    volumes:
+      - /data/images/_buffer:/tmp/uploaded
+    ports:
+      - 80:80
+    networks:
+      - cytomine
+
+  software_router:
+    container_name: software_router
+    build: 
+      context: ../Cytomine_bootstrap
+      dockerfile: ../cytomine-docker-compose/docker/software_router/Dockerfile
+    privileged: true
+    depends_on:
+      - rabbitmq
+      - slurm
+    volumes:
+      - singularity_images:/data/softwares/images
+      - /var/run/docker.sock:/var/run/docker.sock
+    links:
+      - rabbitmq:rabbitmq
+      - slurm:slurm
+    networks:
+      - cytomine
+
+
+volumes:
+  postgis_data: {}
+  mongodb_data: {}
+  slurm_data: {}
+  singularity_images: {}
+
+networks:
+  cytomine:
+#    name: cytomine
