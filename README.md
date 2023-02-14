@@ -99,4 +99,4 @@ Some additional information redarding Cytomine's installation and configuration 
 
 ## Isuues
 
-~~~~1. Core doesn't start at the first start for a some reason (stack overflow exception). Works fine after restart.
+1. Core doesn't start at the first start for a some reason (stack overflow exception). Works fine after restart.
