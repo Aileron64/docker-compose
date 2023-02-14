@@ -1,4 +1,4 @@
-FROM cytomine/software_router:v2.1.1
+FROM 782111260328.dkr.ecr.us-east-2.amazonaws.com/slidevault-software_router:v1.0.0
 
 ADD hosts/software_router/addHosts.sh /tmp/addHosts.sh
 ADD configs/software_router/config.groovy /software_router/config.groovy

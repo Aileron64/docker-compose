@@ -1,0 +1,21 @@
+version: '3'
+services:
+
+  ims:
+    #    container_name: ims # commented due to scaling issue
+    restart: unless-stopped
+#    image: cytomine/ims:latest_dev # for development purposes
+    build:
+      context: ../Cytomine_bootstrap
+      dockerfile: ../cytomine-docker-compose/docker/ims/Dockerfile
+    depends_on:
+      - bioformat
+    environment:
+      - IMS_STORAGE_PATH=/data/images
+    volumes:
+      - /data/images:/data/images:rw
+      - /data/images/_buffer:/tmp/uploaded:rw
+#    links: # they are in the same network so should work
+#      - bioformat:bioformat
+    networks:
+      - cytomine

@@ -1,0 +1,50 @@
+version: '3'
+services:
+
+  core:
+    container_name: core
+    restart: unless-stopped
+    build:
+      context: ../Cytomine_bootstrap
+      dockerfile: ../cytomine-docker-compose/docker/core/Dockerfile
+    ports:
+      - 8080:8080
+    depends_on:
+      - postgresql
+      - mongodb
+      - rabbitmq
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /data/softwares/code:/data/softwares/code:rw
+#    links:
+#      - postgresql:postgresql
+#      - mongodb:mongodb
+#      - rabbitmq:rabbitmq
+    networks:
+      - cytomine
+
+  nginx:
+    container_name: nginx
+    restart: unless-stopped
+    build: 
+      context: ../Cytomine_bootstrap
+      dockerfile: ../cytomine-docker-compose/docker/nginx/Dockerfile
+    depends_on:
+      - ims
+      - iip_cyto
+      - core
+      - iip_off
+      - web_ui
+#    links:
+#      - ims:ims
+#      - iip_cyto:iip_cyto
+#      - core:core
+#      - iip_off:iip_off
+#      - web_ui:web_ui
+    volumes:
+      - /data/images/_buffer:/tmp/uploaded
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - cytomine
