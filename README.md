@@ -96,7 +96,3 @@ if there is no *service_name* all the images and containers will be rebuilt and 
 
 Some additional information redarding Cytomine's installation and configuration is [here](https://doc.cytomine.org/admin-guide/install.html).
 
-
-## Isuues
-
-1. Core doesn't start at the first start for a some reason (stack overflow exception). Works fine after restart.
