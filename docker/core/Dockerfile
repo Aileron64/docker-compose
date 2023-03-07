@@ -1,4 +1,4 @@
-FROM 782111260328.dkr.ecr.us-east-2.amazonaws.com/slidevault-core:v1.1.5
+FROM 782111260328.dkr.ecr.us-east-2.amazonaws.com/slidevault-core:v1.1.4
 
 ADD configs/core/setenv.sh /tmp/setenv.sh
 ADD configs/core/cytomineconfig.groovy /usr/share/tomcat9/.grails/cytomineconfig.groovy

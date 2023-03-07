@@ -1,3 +1,4 @@
+#used for unit-test environment
 version: '3'
 services:
   memcached:
@@ -16,7 +17,7 @@ services:
     environment:
       - RABBITMQ_PASS=${RABBITMQ_PASS}
     ports:
-      - 5672:5672
+      - 5673:5672
       - 15672:15672
     networks:
       - cytomine
@@ -27,10 +28,10 @@ services:
     image: 782111260328.dkr.ecr.us-east-2.amazonaws.com/slidevault-postgis:v1.0.0
     #    mem_limit: 8g
     command: ["postgres", "-c", "log_statement=all"]
-    volumes:
-      - postgis_data:/var/lib/postgresql:rw
+#    volumes:
+#      - postgis_data:/var/lib/postgresql:rw
     ports:
-      - 5432:5432
+      - 5433:5432
     networks:
       - cytomine
 
@@ -38,8 +39,10 @@ services:
     container_name: mongodb
     restart: unless-stopped
     image: 782111260328.dkr.ecr.us-east-2.amazonaws.com/slidevault-mongodb:v1.0.0
-    volumes:
-      - mongodb_data:/data/db:rw
+#    volumes:
+#      - mongodb_data:/data/db:rw
+    ports:
+      - 27018:27017
     networks:
       - cytomine
 
@@ -70,7 +73,7 @@ services:
     environment:
       - NB_IIP_PROCESS=10
     volumes:
-      - /data/images:/data/images:rw
+      - images:/data/images:rw
     links:
       - memcached:memcached
     networks:
@@ -88,7 +91,7 @@ services:
     environment:
       - NB_IIP_PROCESS=10
     volumes:
-      - /data/images:/data/images:rw
+      - images:/data/images:rw
     links:
       - memcached:memcached
     networks:
@@ -101,7 +104,7 @@ services:
     environment:
       - BIOFORMAT_PORT=4321
     volumes:
-      - /data/images:/data/images:rw
+      - images:/data/images:rw
     networks:
       - cytomine
 
@@ -136,8 +139,9 @@ services:
       - cytomine
 
 volumes:
-  postgis_data: {}
-  mongodb_data: {}
+#  postgis_data: {}
+#  mongodb_data: {}
+  images: {}
   slurm_data: {}
   singularity_images: {}
 

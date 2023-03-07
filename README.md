@@ -80,7 +80,7 @@ $(aws ecr get-login  --no-include-email)
 Change dir to a cytomyne-docker-compose and run a docker compose configuration:
 
 ```shell
-cd ../cytomine-docker-compose && \
+cd ../slidevault-docker-compose && \
 docker-compose -f docker-compose-base.yml  -f docker-compose-ims.yml -f docker-compose-app.yml up 
 ```
 

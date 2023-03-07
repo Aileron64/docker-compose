@@ -6,7 +6,7 @@ services:
     restart: unless-stopped
     build:
       context: ../Cytomine_bootstrap
-      dockerfile: ../cytomine-docker-compose/docker/core/Dockerfile
+      dockerfile: ../slidevault-docker-compose/docker/core/Dockerfile
     ports:
       - 8080:8080
     depends_on:
@@ -28,7 +28,7 @@ services:
     restart: unless-stopped
     build: 
       context: ../Cytomine_bootstrap
-      dockerfile: ../cytomine-docker-compose/docker/nginx/Dockerfile
+      dockerfile: ../slidevault-docker-compose/docker/nginx/Dockerfile
     depends_on:
       - ims
       - iip_cyto
