@@ -1,98 +1,106 @@
-# Docker Compose configuration for Cytomine
+# CYTOMINE DOCKER DEPLOYMENT #
 
-## Installation
-1. Clone the repository (Repo TBD)
-```shell
-git clone ....
-```
+This is the starting point to install Cytomine.
+The Dockerfiles are into [this repository](https://github.com/cytomine/Dockerfiles)
 
-2. Retrieve Cytomine-bootstrap
-Cytomine-bootstrap gathers all commands and scripts to manage your SlideVault instance.
+## How to install it
 
-To install the latest version of SlideVault, run:
-```shell
-git clone git@hdp-gitlab.hurondigitalpathology.com:pine/cytomine-bootstrap.git Cytomine_bootstrap
-```
-
-3. Configure SlideVault installation
-
-Open the file configuration.sh in a text editor.
-
-### Configure URLs
-
-In order to open SlideVault in your browser, URLs pointing to SlideVault components have to be configured.
-
-* *CORE_URL* is the URL of the main SlideVault server.
-* *IMS_URL* is the URL for the image server.
-* *UPLOAD_URL* is the URL used to upload new images.
-
-*CORE_URL*, *IMS_URL* and *UPLOAD_URL* have to be different (even if they are pointing to the same host). As an example, cytomine.domain.my and cytomine.domain.my/ims will not work as ims is subURL of the main ones. cytomine.domain.my, cytomine-ims.domain.my, ... is a valid example.
-
-Decide about the accessibility of your installation:
-
-* **To share your installation and make your SlideVault instance accessible** from anywhere, create DNS entries and make their HTTP(S) ports (80/443) accessible for these URLs. This operation can often be realised by your network administrator or your IT department.
-* **To install locally (on a laptop for example)**, open the file /etc/hosts in a text editor. Append these lines:
-
-```text
-127.0.0.1 $CORE_URL
-127.0.0.1 $IMS_URL
-127.0.0.1 $UPLOAD_URL
-127.0.0.1 rabbitmq
-```
-where *$CORE_URL*, *$IMS_URL* and *$UPLOAD_URL* have been substituted by the values you chose.
-
-If you have a default configuration you may use next:
-
-```text
-127.0.0.1 dev.hurondigitalpathology.com ims.hurondigitalpathology.com ims2.hurondigitalpathology.com upload.hurondigitalpathology.com
-```
-
-On Mac OS, run **sudo killall -HUP mDNSResponder** after /etc/hosts update.
-
-### Configure disk paths
-
-All paths referenced in **..._PATH** configuration keys must exist and be mappable in the Docker engine.
-
-### Other configuration
-
-You can learn about the other variables on this dedicated [page](https://doc.cytomine.org/admin-guide/install_variables).
-
-4. Start SlideVault
-
-Generate SSL Certificate and key
+- Fill the configuration.sh file
 
 ```shell
-mkdir ../Cytomine_bootstrap/cert && \
-openssl req  -subj "/C=CA/CN=*.hurondigitalpathology.com"  -x509 -nodes -days 365  -newkey rsa:2048 -keyout ../Cytomine_bootstrap/cert/wildcard_hurondigitalpathology_com.key -out ../Cytomine_bootstrap/cert/Huron.crt
+# Names of the main services.
+CORE_URL=dev.hurondigitalpathology.com
+IMS_URL1=ims.hurondigitalpathology.com
+IMS_URL2=ims2.hurondigitalpathology.com
+UPLOAD_URL=upload.hurondigitalpathology.com
 ```
-
-Initialize your SlideVault instance with the configuration you chose at previous step. Run
+- If you use SSL/TLS
+####  Make a cert dir and add your SSL/TLS certificate and key
 
 ```shell
-bash init.sh
+mkdir "cert"
 ```
-Sing in to a Docker repository:
+#### Change configuration.sh params  
+Replace certificate.crt and certificate.key with your filenames
+from cert dir. Use filename only.
 
 ```shell
-$(aws ecr get-login  --no-include-email)
+PROTOCOL="https"
+
+# SSL/TLS certificate and key for this domain.
+SSL_CRT="certificate.crt"
+SSL_KEY="certificate.key"
 ```
 
-Change dir to a cytomyne-docker-compose and run a docker compose configuration:
+- Run the init.sh script
+```shell
+init.sh
+```
+- Run the generated start_deploy.sh script
+```shell
+start_deploy.sh
+```
+
+For more information, see our [installation instructions](https://doc.cytomine.org/admin-guide/install)
+
+## Docker Compose
 
 ```shell
-cd ../slidevault-docker-compose && \
-docker-compose -f docker-compose-base.yml  -f docker-compose-ims.yml -f docker-compose-app.yml up 
+SlideVault Service
+Usage: ./compose.sh {install|update|clean|remove|scale|start|stop|status|logs}
 ```
 
-for some debugging purposes, image(s) and container(s) recreation use this command:
+### Install or update containers
 
+For a while both of commands do the same
 ```shell
-docker-compose -f docker-compose-base.yml  -f docker-compose-ims.yml -f docker-compose-app.yml up --build --force-recreate --no-deps [service_name]
+./compose.sh install
+```
+```shell
+./compose.sh update
 ```
 
-if there is no *service_name* all the images and containers will be rebuilt and recreated.
+### Remove
+**clean** - removes containers but keeps volumes.
+```shell
+./compose.sh clean
+```
 
-## Additional information
+**remove** - removes all the containers and volumes.
+```shell
+./compose.sh remove
+```
 
-Some additional information redarding Cytomine's installation and configuration is [here](https://doc.cytomine.org/admin-guide/install.html).
+### Start/stop
+**start** - starts stopped containers.
+```shell
+./compose.sh start
+```
+
+**stop** - stops all the containers.
+```shell
+./compose.sh stop
+```
+
+### Scale
+**TBD**
+
+### Maintenance
+**logs** - Shows logs for all the containers.
+```shell
+./compose.sh logs
+```
+
+**ps** - Shows statuses of all the containers.
+```shell
+./compose.sh ps
+```
+
+
+## Remarks
+
+When using our software, we kindly ask you to show our website URL and our logo in all your work (web site, publications, studies, oral presentations, manuals, ...). If you use Cytomine for scientific purpose, please cite Marée et al., Bioinformatics 2016 as reference paper. See our license files for additional details.
+- URL: http://www.cytomine.org/
+- Logo: [Available here](https://doc.cytomine.org/images/cytomine-org-logo.png)
+- Scientific paper: Raphaël Marée, Loïc Rollus, Benjamin Stévens, Renaud Hoyoux, Gilles Louppe, Rémy Vandaele, Jean-Michel Begon, Philipp Kainz, Pierre Geurts and Louis Wehenkel. Collaborative analysis of multi-gigapixel imaging data using Cytomine, Bioinformatics, DOI: 10.1093/bioinformatics/btw013, 2016. http://dx.doi.org/10.1093/bioinformatics/btw013
 

@@ -1,0 +1,4 @@
+FROM $WEB_UI_REPO
+
+ADD configs/web_ui/configuration.json /app/configuration.json
+ADD configs/web_ui/nginx.conf /etc/nginx/nginx.conf

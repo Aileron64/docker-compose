@@ -1,0 +1,2 @@
+clear
+docker logs --tail 1000 -f $1

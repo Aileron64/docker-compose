@@ -1,0 +1,15 @@
+FROM $CORE_REPO
+
+ADD configs/core/setenv.sh /tmp/setenv.sh
+ADD configs/core/cytomineconfig.groovy /usr/share/tomcat9/.grails/cytomineconfig.groovy
+ADD hosts/core/addHosts.sh /tmp/addHosts.sh
+ADD configs/core/server.xml /usr/local/tomcat/conf/server.xml
+
+#Self-signed certificate instalation
+ADD cert/$SSL_CRT /usr/local/share/ca-certificates/$SSL_CRT
+RUN update-ca-certificates
+
+COPY cert/$SSL_CRT $JAVA_HOME/jre/lib/security/Huron.crt
+RUN \
+    cd $JAVA_HOME/jre/lib/security \
+    && keytool -keystore cacerts -storepass changeit -noprompt -trustcacerts -importcert -alias ldapcert -file $SSL_CRT

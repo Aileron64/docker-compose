@@ -1,0 +1,5 @@
+FROM $MEMCACHED_REPO
+
+ADD configs/memcached/memcached.conf /etc/memcached.conf
+
+

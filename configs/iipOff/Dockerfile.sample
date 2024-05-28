@@ -1,0 +1,3 @@
+FROM $IIP_OFF_REPO
+
+ADD configs/iipOff/nginx.conf.sample /tmp/nginx.conf.sample

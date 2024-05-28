@@ -1,0 +1,17 @@
+FROM $SOFTWARE_ROUTER_REPO
+
+ADD hosts/software_router/addHosts.sh /tmp/addHosts.sh
+ADD configs/software_router/config.groovy /software_router/config.groovy
+ADD configs/software_router/log4j.properties /software_router/log4j.properties
+
+ADD configs/software_router/keys/ssh_key /root/.ssh/id_rsa
+RUN chmod 600 /root/.ssh/id_rsa
+
+#Self-signed certificate instalation
+ADD cert/$SSL_CRT /usr/local/share/ca-certificates/$SSL_CRT
+RUN update-ca-certificates
+
+
+COPY cert/$SSL_CRT $JAVA_HOME/lib/security/Huron.crt
+RUN keytool -keystore "$JAVA_HOME/lib/security/cacerts" -storepass changeit -noprompt -trustcacerts -importcert -file $JAVA_HOME/lib/security/$SSL_CRT
+ 

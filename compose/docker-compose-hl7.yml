@@ -1,0 +1,17 @@
+services:
+
+  hl7-bridge:
+    container_name: hl7-bridge
+    restart: unless-stopped
+    build:
+      context: ../
+      dockerfile: configs/hl7/Dockerfile
+#    ports:
+#      - 8081:8081
+#      - 8888:8888
+    volumes:
+      - /etc/localtime:/etc/localtime
+    depends_on:
+      - postgresql
+    networks:
+      - slidevault

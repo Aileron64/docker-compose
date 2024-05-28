@@ -1,0 +1,3 @@
+FROM $IIP_CYTO_REPO
+
+ADD configs/iipCyto/nginx.conf.sample /tmp/nginx.conf.sample
