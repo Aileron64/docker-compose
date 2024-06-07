@@ -9,7 +9,7 @@ ADD configs/core/server.xml /usr/local/tomcat/conf/server.xml
 ADD cert/$SSL_CRT /usr/local/share/ca-certificates/$SSL_CRT
 RUN update-ca-certificates
 
-COPY cert/$SSL_CRT $JAVA_HOME/jre/lib/security/Huron.crt
+COPY cert/$SSL_CRT $JAVA_HOME/jre/lib/security
 RUN \
     cd $JAVA_HOME/jre/lib/security \
     && keytool -keystore cacerts -storepass changeit -noprompt -trustcacerts -importcert -alias ldapcert -file $SSL_CRT
