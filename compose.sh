@@ -34,26 +34,26 @@ fi
 ALL_COMPOSER_CONFIGS="-f compose/docker-compose-base.yml -f compose/docker-compose-ims.yml -f compose/docker-compose-app.yml -f compose/docker-compose-hl7.yml"
 
 function login_to_aws() {
-docker login -u AWS -p $(aws ecr get-login-password --region us-east-2) 782111260328.dkr.ecr.us-east-2.amazonaws.com
+    docker login -u AWS -p $(aws ecr get-login-password --region us-east-2) 782111260328.dkr.ecr.us-east-2.amazonaws.com
 }
 
 function deploy() {
-login_to_aws
+    login_to_aws
 
-docker compose -f compose/docker-compose-base.yml -f compose/docker-compose-ims.yml up --build -d
-if false; then
-docker compose -f compose/docker-compose-base.yml -f compose/docker-compose-hl7.yml up --build -d
-fi
-docker compose -f compose/docker-compose-base.yml \
-                -f compose/docker-compose-ims.yml \
-                -f compose/docker-compose-app.yml \
-                -f compose/docker-compose-hl7.yml \
-                up --build -d core
-docker compose -f compose/docker-compose-base.yml \
-                -f compose/docker-compose-ims.yml \
-                -f compose/docker-compose-app.yml \
-                -f compose/docker-compose-hl7.yml \
-                up --build -d nginx
+    docker compose -f compose/docker-compose-base.yml -f compose/docker-compose-ims.yml up --build -d
+    if false; then
+    docker compose -f compose/docker-compose-base.yml -f compose/docker-compose-hl7.yml up --build -d
+    fi
+    docker compose -f compose/docker-compose-base.yml \
+                    -f compose/docker-compose-ims.yml \
+                    -f compose/docker-compose-app.yml \
+                    -f compose/docker-compose-hl7.yml \
+                    up --build -d core
+    docker compose -f compose/docker-compose-base.yml \
+                    -f compose/docker-compose-ims.yml \
+                    -f compose/docker-compose-app.yml \
+                    -f compose/docker-compose-hl7.yml \
+                    up --build -d nginx
 }
 case "$1" in
 install|update)

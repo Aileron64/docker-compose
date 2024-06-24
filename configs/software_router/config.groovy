@@ -3,9 +3,9 @@ rabbitmq.port = "5672"
 rabbitmq.username='slidevault'
 rabbitmq.password='slidevault'
 
-cytomine.core.url='https://redhat.hurondigitalpathology.com'
-cytomine.core.publicKey='391093dc-108a-4d63-b360-d2c35173c63b'
-cytomine.core.privateKey='deea18c1-5b95-44ba-9937-5ffda0524882'
+cytomine.core.url='http://core-service:8080'
+cytomine.core.publicKey=''
+cytomine.core.privateKey=''
 
 cytomine.software.communication.exchange = "exchangeCommunication"
 cytomine.software.communication.queue = "queueCommunication"

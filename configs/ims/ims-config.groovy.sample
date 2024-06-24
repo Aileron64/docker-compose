@@ -1,17 +1,17 @@
-cytomine.ims.server.url = "$PROTOCOL://$IMS_URL1"
-cytomine.ims.server.core.url = "$PROTOCOL://$CORE_URL"
-cytomine.ims.server.publicKey = "$IMS_PUB_KEY"
-cytomine.ims.server.privateKey = "$IMS_PRIV_KEY"
+cytomine.ims.server.url = "$SV_HTTP_PROTOCOL://$SV_HOSTNAME$IMS_SERVICE_ROOT_CONTEXT"
+cytomine.ims.server.core.url = "http://$CORE_SERVICE_CONTAINER_NAME:8080$CORE_SERVICE_ROOT_CONTEXT"
+cytomine.ims.server.publicKey = "147f1212-59a9-48bd-8a84-a17ab84e72df"
+cytomine.ims.server.privateKey = "71acedb0-335b-41d6-b8d6-4e1acf830e3c"
 
 cytomine.ims.path.buffer = "$IMS_BUFFER_PATH"
 cytomine.ims.path.storage = "$IMS_STORAGE_PATH"
 
-cytomine.ims.conversion.bioformats.enabled = $BIOFORMAT_ENABLED
-cytomine.ims.conversion.bioformats.hostname = "bioformat"
+cytomine.ims.conversion.bioformats.enabled = $IMS_BIOFORMAT_ENABLED
+cytomine.ims.conversion.bioformats.hostname = $BIOFORMAT_CONTAINER_NAME
 cytomine.ims.conversion.bioformats.port = 4321
 
-cytomine.ims.pyramidalTiff.iip.url = "$PROTOCOL://$IIP_OFF_URL/fcgi-bin/iipsrv.fcgi"
-cytomine.ims.openslide.iip.url = "$PROTOCOL://$IIP_CYTO_URL/fcgi-bin/iipsrv.fcgi"
+cytomine.ims.pyramidalTiff.iip.url = "http://$IIP_OFF_CONTAINER_NAME/fcgi-bin/iipsrv.fcgi"
+cytomine.ims.openslide.iip.url = "http://$IIP_CYTO_CONTAINER_NAME/fcgi-bin/iipsrv.fcgi"
 //cytomine.ims.jpeg2000.iip.url = "$PROTOCOL://localhost-iip-jp2000/fcgi-bin/iipsrv.fcgi"
 
 cytomine.ims.jpeg2000.enabled = false

@@ -9,46 +9,69 @@ services:
       - slidevault
 
   rabbitmq:
-    container_name: rabbitmq
+    container_name: ${RABBITMQ_CONTAINER_NAME}
     restart: unless-stopped
     image: ${RABBITMQ_REPO}
     environment:
       - RABBITMQ_USER=${RABBITMQ_USER}
       - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
-    ports:
-      - 5672:5672
-      - 15672:15672
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 10
+    # ports:
+    #   - 5672:5672
+    #   - 15672:15672
     networks:
       - slidevault
 
   postgresql:
-    container_name: postgresql
+    container_name: ${POSTGRES_CONTAINER_NAME}
     restart: unless-stopped
     image: ${POSTGIS_REPO}
     #    mem_limit: 8g
     command: ["postgres", "-c", "log_statement=all"]
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgis_data:/var/lib/postgresql:rw
-    ports:
-      - 5432:5432
+    healthcheck:
+      test: "exit 0"
+    # ports:
+    #   - 5432:5432
     networks:
       - slidevault
 
   mongodb:
-    container_name: mongodb
+    container_name: ${MONGODB_CONTAINER_NAME}
     restart: unless-stopped
     image: ${MONGODB_REPO}
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_INIT_DATABASE}
+      MONGO_INIT_USERNAME: ${MONGO_INIT_USERNAME}
+      MONGO_INIT_PASSWORD: ${MONGO_INIT_PASSWORD}
     volumes:
+      - ../configs/mongo/init.sh:/docker-entrypoint-initdb.d/mongo-init.sh:ro
       - mongodb_data:/data/db:rw
-    ports:
-      - 27017:27017
+    healthcheck:
+      test: echo 'db.stats().ok' | mongo localhost:27017/test --quiet
+      interval: 30s
+      timeout: 30s
+      retries: 10
+    # ports:
+    #   - 27017:27017
     networks:
       - slidevault
 
   slurm:
-    container_name: slurm
+    container_name: ${SLURM_CONTAINER_NAME}
     restart: unless-stopped
-    hostname: cytomine-slurm
+    # hostname: cytomine-slurm
     build:
       context: ../
       dockerfile: configs/slurm/Dockerfile
@@ -61,7 +84,7 @@ services:
       - slidevault
 
   iip_off:
-    container_name: iipOff
+    container_name: ${IIP_OFF_CONTAINER_NAME}
     restart: unless-stopped
     build:
       context: ../
@@ -79,7 +102,7 @@ services:
       - slidevault
 
   iip_cyto:
-    container_name: iipCyto
+    container_name: ${IIP_CYTO_CONTAINER_NAME}
     restart: unless-stopped
     build:
       context: ../
@@ -98,7 +121,7 @@ services:
 
   bioformat:
     restart: unless-stopped
-    container_name: bioformat
+    container_name: ${BIOFORMAT_CONTAINER_NAME}
     image: ${BIOFORMAT_REPO}
     environment:
       - BIOFORMAT_PORT=${BIOFORMAT_PORT}
@@ -107,19 +130,8 @@ services:
     networks:
       - slidevault
 
-  web_ui:
-    container_name: web_UI
-    restart: unless-stopped
-    build:
-      context: ../
-      dockerfile: configs/web_ui/Dockerfile
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-    networks:
-      - slidevault
-
   software_router:
-    container_name: software_router
+    container_name: ${SOFTWARE_ROUTER_CONTAINER_NAME}
     restart: unless-stopped
     build:
       context: ../

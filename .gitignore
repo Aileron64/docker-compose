@@ -4,3 +4,6 @@
 cert/*.crt
 cert/*.key
 cert/*.pem
+storage/*
+start_deploy.sh
+configs/nginx/cert/*
