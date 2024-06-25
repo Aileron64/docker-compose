@@ -1,5 +1,7 @@
 #!/bin/bash
 
+docker login -u AWS -p $(aws ecr get-login-password --region us-east-2) 782111260328.dkr.ecr.us-east-2.amazonaws.com
+
 is_database_ready() {
     if [ $(docker inspect --format='{{.State.Health.Status}}' "postgres" 2>/dev/null) == "healthy" ]; then
         return 0
