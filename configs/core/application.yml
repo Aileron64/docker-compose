@@ -1,12 +1,18 @@
 spring:
+  http:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
   servlet:
     multipart:
       enabled: true
       max-file-size: 3GB
       max-request-size: 3GB
   flyway:
-    create-schemas: true
+    # create-schemas: true
     schemas: ${POSTGRES_SCHEMA}
+    baselineOnMigrate: true
   main:
     #    lazy-initialization: true
     allow-circular-references: true
