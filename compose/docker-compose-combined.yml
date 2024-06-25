@@ -136,6 +136,8 @@ services:
     depends_on:
       bioformat:
         condition: service_started
+      core:
+          condition: service_healthy
     environment:
       IMS_STORAGE_PATH: ${IMS_STORAGE_PATH}
       IMS_SERVICE_ROOT_CONTEXT: ${IMS_SERVICE_ROOT_CONTEXT}
