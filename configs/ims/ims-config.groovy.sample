@@ -16,3 +16,13 @@ cytomine.ims.openslide.iip.url = "http://$IIP_CYTO_CONTAINER_NAME/fcgi-bin/iipsr
 
 cytomine.ims.jpeg2000.enabled = false
 cytomine.ims.deleteImageFilesFrequency=60000
+
+log4j = {
+    appenders {
+        console name: 'stdout', layout: pattern(conversionPattern: '%d{yyyy-MM-dd HH:mm:ss} [%t] %-5p %c{2}:%L %M - %m%n')
+    }
+
+    root {
+        info 'stdout'
+    }
+}

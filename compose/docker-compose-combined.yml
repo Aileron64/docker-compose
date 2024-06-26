@@ -61,6 +61,8 @@ services:
       interval: 20s
       timeout: 5s
       retries: 10
+    extra_hosts:
+      - "${SV_HOSTNAME}:${SV_HOST_IP}"
     networks:
       - slidevault
       
@@ -78,9 +80,9 @@ services:
       KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
-      KC_HEALTH_ENABLED: true
+      KC_HEALTH_ENABLED: "true"
       KC_HOSTNAME: ${SV_HOSTNAME}
-      KC_HOSTNAME_STRICT: true
+      KC_HOSTNAME_STRICT: "true"
       KC_HTTP_RELATIVE_PATH: ${KEYCLOAK_ROOT_CONTEXT}
       KC_PROXY: edge #For reverse proxy
       SV_HOSTNAME: ${SV_HTTP_PROTOCOL}://${SV_HOSTNAME}
@@ -128,6 +130,8 @@ services:
       interval: 20s
       timeout: 5s
       retries: 10
+    extra_hosts:
+      - "${SV_HOSTNAME}:${SV_HOST_IP}"
 
   ims:
     restart: unless-stopped
@@ -154,6 +158,8 @@ services:
       - ../configs/ims/ims-config.groovy:/usr/share/tomcat9/.grails/ims-config.groovy
     networks:
       - slidevault
+    extra_hosts:
+      - "${SV_HOSTNAME}:${SV_HOST_IP}"
 
   memcached:
     container_name: memcached
@@ -236,6 +242,8 @@ services:
       - slurm_data:/var/lib/mysql:rw
       - singularity_images:/data/softwares/images:rw
       - /etc/localtime:/etc/localtime:ro
+    extra_hosts:
+      - "${SV_HOSTNAME}:${SV_HOST_IP}"
     networks:
       - slidevault
 
@@ -254,6 +262,8 @@ services:
       - ${IMS_STORAGE_PATH}:${IMS_STORAGE_PATH}:rw
     links:
       - memcached:memcached
+    extra_hosts:
+      - "${SV_HOSTNAME}:${SV_HOST_IP}"
     networks:
       - slidevault
 
@@ -272,6 +282,8 @@ services:
       - ${IMS_STORAGE_PATH}:${IMS_STORAGE_PATH}:rw
     links:
       - memcached:memcached
+    extra_hosts:
+      - "${SV_HOSTNAME}:${SV_HOST_IP}"
     networks:
       - slidevault
 
@@ -283,6 +295,8 @@ services:
       - BIOFORMAT_PORT=${BIOFORMAT_PORT}
     volumes:
       - ${IMS_STORAGE_PATH}:${IMS_STORAGE_PATH}:rw
+    extra_hosts:
+      - "${SV_HOSTNAME}:${SV_HOST_IP}"
     networks:
       - slidevault
 
@@ -302,6 +316,8 @@ services:
     links:
       - rabbitmq:rabbitmq
       - slurm:slurm
+    extra_hosts:
+      - "${SV_HOSTNAME}:${SV_HOST_IP}"
     networks:
       - slidevault
 

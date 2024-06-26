@@ -84,7 +84,7 @@ application:
   rabbitMQPublicKey: rabbitMQPublicKey
   softwareSources: softwareSources/
   useHTTPInternally: true
-  storagePath: "/data/images"
+  storagePath: ${IMS_STORAGE_PATH}
 
   instanceHostWebsite: "https://www.hurondigitalpathology.com"
   instanceHostSupportMail: "support@hurondigitalpathology.com"
