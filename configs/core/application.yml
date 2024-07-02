@@ -100,6 +100,7 @@ application:
       token-validity-in-seconds-for-short-term: 240
   defaultLanguage: ENGLISH
   imageServerURL: ${IMS_SERVICE_HOSTNAME}
+  imageServerExternalURL: ${IMS_SERVICE_EXTERNAL_HOSTNAME}
   messageBrokerServerURL: ${RABBITMQ_HOST}
   annotation:
     maxNumberOfPoint: 200
