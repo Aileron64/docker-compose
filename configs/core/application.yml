@@ -101,6 +101,14 @@ application:
   defaultLanguage: ENGLISH
   imageServerURL: ${IMS_SERVICE_HOSTNAME}
   imageServerExternalURL: ${IMS_SERVICE_EXTERNAL_HOSTNAME}
+  imsApi:
+    size: "/storage/size.json"
+    associated: "/image/associated.json"
+    nested: "/image/nested."
+    properties: "/image/properties.json"
+    thumb: "/slice/thumb."
+    crop: "/slice/crop."
+    tile: "/slice/tile."
   messageBrokerServerURL: ${RABBITMQ_HOST}
   annotation:
     maxNumberOfPoint: 200
