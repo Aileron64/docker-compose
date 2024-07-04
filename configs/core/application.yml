@@ -71,7 +71,8 @@ javamelody:
 application:
   version: 0.0.0 # do not modify this, it will be replace during build (ci)
   serverId: default
-  serverURL: ${CORE_SERVICE_EXTERNAL_HOSTNAME}
+  serverURL: ${SV_HOSTNAME}
+  rootContext: ${CORE_SERVICE_ROOT_CONTEXT}
   adminPassword: Huron@123
   adminEmail: admin@slidevault.com
   adminPrivateKey: adminPrivateKey
