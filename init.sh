@@ -17,7 +17,6 @@
 #
 FILES=(
     configs/software_router/config.groovy
-    configs/ims/ims-config.groovy
     start_deploy.sh
 )
 

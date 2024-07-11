@@ -1,0 +1,58 @@
+server:
+  servlet:
+    context-path: ${IMS_SERVICE_ROOT_CONTEXT}
+spring:
+  authentication:
+    filter:
+      enabled: false
+  application:
+    name: ims
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:localhost;DB_CLOSE_ON_EXIT=FALSE
+    username: admin
+    password:
+  mvc:
+    log-request-details: true
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+slidevault:
+  core:
+    api:
+      url: ${CORE_SERVICE_HOSTNAME}
+  ims:
+    crop:
+      maxSize: 12_000
+    path:
+      storage: ${IMS_STORAGE_PATH}
+    server:
+      url: ${IMS_SERVICE_HOSTNAME}
+    iip-server:
+      url: ${IIP_SERVER_HOSTNAME}
+    detection:
+      ffmpeg:
+        executable: ${FFMPEG_EXECUTABLE:ffprobe}
+      gdal:
+        executable: ${GDAL_EXECUTABLE:gdalinfo}
+      identify:
+        executable: ${IDENTIFY_EXECUTABLE:identify}
+      tiffinfo:
+        executable: ${TIFFINFO_EXECUTABLE:tiffinfo}
+    conversion:
+      vips:
+        executable: ${VIPS_EXECUTABLE:vips}
+#logging:
+#  level:
+#    root: debug
+keycloak:
+  auth-server-url: ${KEYCLOAK_HOSTNAME}
+  realm: ${KEYCLOAK_SV_REALM}
+  clientId: ${KEYCLOAK_SV_CLIENT_ID}
+  clientSecret: ${KEYCLOAK_SV_CLIENT_SECRET}
+  admin:
+    username: ${KEYCLOAK_SV_SERVICE_ACCOUNT_USERNAME} #This user needs to have manage account permission
+    password: ${KEYCLOAK_SV_SERVICE_ACCOUNT_PASSWORD}
