@@ -59,7 +59,6 @@ server:
       cookie:
         secure: false
         httpOnly: false
-        maxAge: ${application.authentication.jwt.token-validity-in-seconds}
 
 javamelody:
   enabled: false
@@ -92,13 +91,7 @@ application:
   instanceHostPhoneNumber:
 
   authentication:
-    jwt:
-      # This token must be encoded using Base64 and be at least 256 bits long (you can type `openssl rand -base64 64` on your command line to generate a 512 bits one)
-      secret: +MbQeThWmZq4t6w9z$C&F)J@NcRfUjXn2r5u8x!A%D*G-KaPdSgVkYp3s6v9y$B?
-      # Token is valid 24 hours
-      token-validity-in-seconds: 86400
-      token-validity-in-seconds-for-remember-me: 2592000
-      token-validity-in-seconds-for-short-term: 240
+    enable: false # To validate on token on API level (Gateway already does that so it might not required)
   defaultLanguage: ENGLISH
   imageServerURL: ${IMS_SERVICE_HOSTNAME}
   imageServerExternalURL: ${IMS_SERVICE_EXTERNAL_HOSTNAME}
@@ -371,10 +364,10 @@ keycloak:
   admin:
     username: ${KEYCLOAK_SV_SERVICE_ACCOUNT_USERNAME} #This user needs to have manage account permission
     password: ${KEYCLOAK_SV_SERVICE_ACCOUNT_PASSWORD}
-logging:
-  level:
-#    org.springframework: DEBUG
-    root: INFO
+# logging:
+#   level:
+#     org.springframework: DEBUG
+#     root: INFO
 management:
   health:
     mail:
