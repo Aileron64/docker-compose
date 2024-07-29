@@ -1,5 +1,38 @@
 #!/bin/bash
 
+# Check docker installation
+if command -v docker &> /dev/null; then
+    echo -e "\033[32m =================== docker installation present               ==================="
+else
+    echo -e "\033[31m =================== docker installation not present           ==================="
+    exit 1
+fi
+
+# Check docker-compose installation
+if command -v docker-compose &> /dev/null; then
+    echo -e "\033[32m =================== docker-compose installation present       ==================="
+else
+    echo -e "\033[31m =================== docker-compose installation not present   ==================="
+    exit 1
+fi
+
+# Check dig installation
+if command -v dig &> /dev/null; then
+    echo -e "\033[32m =================== dig installation present                  ==================="
+else
+    echo -e "\033[31m =================== dig installation not present              ==================="
+    exit 1
+fi
+
+# Check envsubst installation
+if command -v envsubst &> /dev/null; then
+    echo -e "\033[32m =================== envsubst installation present             ==================="
+else
+    echo -e "\033[31m =================== envsubst installation not present         ==================="
+    exit 1
+fi
+
+
 is_database_ready() {
     if [ $(docker inspect --format='{{.State.Health.Status}}' "postgres" 2>/dev/null) == "healthy" ]; then
         return 0
@@ -9,7 +42,10 @@ is_database_ready() {
 }
 
 docker login -u AWS -p $(aws ecr get-login-password --region us-east-2) 782111260328.dkr.ecr.us-east-2.amazonaws.com
+
+# Sometime .env file is not recognized file by docker compose so it becomes necessary to go inside compose folder and then run
 cd compose
+
 # Run only database to create keycloak schema. 
 # Ideally it should be part of postgres container entrypoint but somehow its not working since its custom postgres image. Need to figure that out
 docker-compose -f docker-compose-combined.yml up -d postgresql
@@ -24,4 +60,4 @@ done
 docker exec  postgres psql "postgresql://docker:docker@localhost:5432/docker" -c "CREATE SCHEMA IF NOT EXISTS keycloak AUTHORIZATION docker;"
 
 # Run all the containers now
-SV_HOST_IP="$(dig +short abhishek.hurondigitalpathology.com)" docker-compose -f docker-compose-combined.yml up -d
+SV_HOST_IP="$(dig +short localhost.hurondigitalpathology.com)" docker-compose -f docker-compose-combined.yml up -d
