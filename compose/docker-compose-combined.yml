@@ -42,7 +42,7 @@ services:
       KEYCLOAK_SV_CLIENT_SECRET: ${KEYCLOAK_SV_CLIENT_SECRET}
       KEYCLOAK_SV_SERVICE_ACCOUNT_USERNAME: ${KEYCLOAK_SV_SERVICE_ACCOUNT_USERNAME}
       KEYCLOAK_SV_SERVICE_ACCOUNT_PASSWORD: ${KEYCLOAK_SV_SERVICE_ACCOUNT_PASSWORD}
-      IMS_STORAGE_PATH: ${IMS_STORAGE_PATH}
+      IMS_STORAGE_PATH: /data/images
       IMS_SERVICE_HOSTNAME: http://${IMS_SERVICE_CONTAINER_NAME}:8080${IMS_SERVICE_ROOT_CONTEXT}
       IMS_SERVICE_EXTERNAL_HOSTNAME: ${SV_HTTP_PROTOCOL}://${SV_HOSTNAME}${IMS_SERVICE_ROOT_CONTEXT}
     depends_on:
@@ -263,7 +263,7 @@ services:
     environment:
       - NB_IIP_PROCESS=${NB_IIP_PROCESS}
     volumes:
-      - ${IMS_STORAGE_PATH}:${IMS_STORAGE_PATH}:rw
+      - ${IMS_STORAGE_PATH}:/data/images:rw
     links:
       - memcached:memcached
     extra_hosts:
@@ -283,7 +283,7 @@ services:
     environment:
       - NB_IIP_PROCESS=${NB_IIP_PROCESS}
     volumes:
-      - ${IMS_STORAGE_PATH}:${IMS_STORAGE_PATH}:rw
+      - ${IMS_STORAGE_PATH}:/data/images:rw
     links:
       - memcached:memcached
     extra_hosts:
@@ -298,7 +298,7 @@ services:
     environment:
       - BIOFORMAT_PORT=${BIOFORMAT_PORT}
     volumes:
-      - ${IMS_STORAGE_PATH}:${IMS_STORAGE_PATH}:rw
+      - ${IMS_STORAGE_PATH}:/data/images:rw
     extra_hosts:
       - "${SV_HOSTNAME}:${SV_HOST_IP}"
     networks:
