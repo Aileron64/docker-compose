@@ -4,10 +4,10 @@
     3. Linux utilities
         a. envsubst - to populate environment variables
         b. dig - to get exact IP of the SV Host
-        
+        c. aws - to login and fetch the docker images
 # Running the application
 1. Set domain name and docker image versions in .env file present under compose folder
-2. Copy certificate as certificate.crt and key as key.key inside configs/nginx/cert structure
+2. Copy certificate as certificate.crt and key as key.key inside configs/nginx/cert folder. If the cert folder does not exist, create
 2. Run ./init.sh from root folder
 3. Run ./start_deploy.sh
 
