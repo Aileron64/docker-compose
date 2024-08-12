@@ -1,9 +1,9 @@
 rabbitmq.host = "rabbitmq"
 rabbitmq.port = "5672"
-rabbitmq.username='$RABBITMQ_USER'
-rabbitmq.password='$RABBITMQ_PASSWORD'
+rabbitmq.username='${RABBITMQ_USER}'
+rabbitmq.password='${RABBITMQ_PASSWORD}'
 
-cytomine.core.url='$PROTOCOL://$CORE_URL'
+cytomine.core.url='http://${CORE_SERVICE_CONTAINER_NAME}:8080'
 cytomine.core.publicKey='$RABBITMQ_PUB_KEY'
 cytomine.core.privateKey='$RABBITMQ_PRIV_KEY'
 

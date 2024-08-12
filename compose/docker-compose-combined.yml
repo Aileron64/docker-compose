@@ -1,0 +1,353 @@
+services:
+  nginx:
+    image: ${NGINX_REPO}
+    container_name: ${NGINX_CONTAINER_NAME}
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - ../configs/nginx/default.conf:/etc/nginx/nginx.conf
+      - ../configs/nginx/cert/certificate.crt:/etc/cert/certificate.crt
+      - ../configs/nginx/cert/key.key:/etc/cert/key.key
+      - ../configs/nginx/ssl.conf:/etc/nginx/ssl.conf
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    networks:
+      - slidevault
+    environment:
+      SV_HOSTNAME: ${SV_HOSTNAME}
+
+  core:
+    image: ${CORE_SERVICE_REPO}
+    container_name: ${CORE_SERVICE_CONTAINER_NAME}
+    restart: unless-stopped
+    environment:
+      SPRING_CONFIG_LOCATION: /app/main/
+      MONGO_HOST: ${MONGODB_CONTAINER_NAME}
+      MONGO_USERNAME: ${MONGO_INIT_USERNAME}
+      MONGO_PASSWORD: ${MONGO_INIT_PASSWORD}
+      MONGO_DATABASE: ${MONGO_INIT_DATABASE}
+      POSTGRES_HOST: ${POSTGRES_CONTAINER_NAME}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_SCHEMA: ${POSTGRES_SLIDEVAULT_SCHEMA}
+      POSTGRES_USERNAME: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_HOST: ${RABBITMQ_CONTAINER_NAME}
+      SV_HOSTNAME: ${SV_HTTP_PROTOCOL}://${SV_HOSTNAME}
+      CORE_SERVICE_ROOT_CONTEXT: ${CORE_SERVICE_ROOT_CONTEXT}
+      KEYCLOAK_HOSTNAME: http://${KEYCLOAK_CONTAINER_NAME}:8080${KEYCLOAK_ROOT_CONTEXT} #Dont change protocol here. Its container to container communication
+      KEYCLOAK_SV_REALM: ${KEYCLOAK_SV_REALM}
+      KEYCLOAK_SV_CLIENT_ID: ${KEYCLOAK_SV_CLIENT_ID}
+      KEYCLOAK_SV_CLIENT_SECRET: ${KEYCLOAK_SV_CLIENT_SECRET}
+      KEYCLOAK_SV_SERVICE_ACCOUNT_USERNAME: ${KEYCLOAK_SV_SERVICE_ACCOUNT_USERNAME}
+      KEYCLOAK_SV_SERVICE_ACCOUNT_PASSWORD: ${KEYCLOAK_SV_SERVICE_ACCOUNT_PASSWORD}
+      IMS_STORAGE_PATH: /data/images
+      IMS_SERVICE_HOSTNAME: http://${IMS_SERVICE_CONTAINER_NAME}:8080${IMS_SERVICE_ROOT_CONTEXT}
+      IMS_SERVICE_EXTERNAL_HOSTNAME: ${SV_HTTP_PROTOCOL}://${SV_HOSTNAME}${IMS_SERVICE_ROOT_CONTEXT}
+    depends_on:
+      keycloak:
+        condition: service_healthy
+      postgresql:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    volumes:
+      - ../configs/core/application.yml:/app/main/application.yml
+      - /etc/localtime:/etc/localtime:ro
+      - ${UPLOADED_SOFTWARES_PATH}:/data/softwares/code:rw
+    healthcheck:
+      test: "curl --fail --silent localhost:8080${CORE_SERVICE_ROOT_CONTEXT}/actuator/health | grep UP || exit 1"
+      interval: 20s
+      timeout: 5s
+      retries: 10
+    extra_hosts:
+      - "${SV_HOSTNAME}:${SV_HOST_IP}"
+    networks:
+      - slidevault
+      
+  keycloak:
+    image: ${KEYCLOAK_REPO}
+    container_name: ${KEYCLOAK_CONTAINER_NAME}
+    command: start --verbose --import-realm #start-dev for development
+    #    command: start-dev --spi-theme-static-max-age=-1 --spi-theme-cache-themes=false --spi-theme-cache-templates=false
+    environment:
+      KC_DB: postgres #Database vendor
+      KC_DB_URL_HOST: ${POSTGRES_CONTAINER_NAME}
+      KC_DB_URL_DATABASE: ${POSTGRES_DB}
+      KC_DB_SCHEMA: ${KEYCLOAK_SCHEMA}
+      KC_DB_USERNAME: ${POSTGRES_USERNAME}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_HEALTH_ENABLED: "true"
+      KC_HOSTNAME: ${SV_HOSTNAME}
+      KC_HOSTNAME_STRICT: "true"
+      KC_HTTP_RELATIVE_PATH: ${KEYCLOAK_ROOT_CONTEXT}
+      KC_PROXY: edge #For reverse proxy
+      SV_HOSTNAME: ${SV_HTTP_PROTOCOL}://${SV_HOSTNAME}
+      KEYCLOAK_SV_REALM: ${KEYCLOAK_SV_REALM}
+      KEYCLOAK_SV_SERVICE_ACCOUNT_USERNAME: ${KEYCLOAK_SV_SERVICE_ACCOUNT_USERNAME}
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    healthcheck:
+      test: [ 'CMD-SHELL', '[ -f /tmp/HealthCheck.java ] || echo "public class HealthCheck { public static void main(String[] args) throws java.lang.Throwable { System.exit(java.net.HttpURLConnection.HTTP_OK == ((java.net.HttpURLConnection)new java.net.URL(args[0]).openConnection()).getResponseCode() ? 0 : 1); } }" > /tmp/HealthCheck.java && java /tmp/HealthCheck.java http://localhost:8080/${KEYCLOAK_ROOT_CONTEXT}/health/live' ]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    networks:
+      - slidevault
+    volumes:
+      - ../configs/keycloak/theme:/opt/keycloak/themes/slidevault
+      - ../configs/keycloak/import:/opt/keycloak/data/import
+
+  gateway:
+    image: ${GATEWAY_REPO}
+    container_name: ${GATEWAY_CONTAINER_NAME}
+    environment:
+      SPRING_CONFIG_LOCATION: /app/main/
+      GATEWAY_HOSTNAME: ${SV_HTTP_PROTOCOL}://${SV_HOSTNAME}
+      KEYCLOAK_HOSTNAME: ${SV_HTTP_PROTOCOL}://${SV_HOSTNAME}${KEYCLOAK_ROOT_CONTEXT}
+      CORE_SERVICE_HOSTNAME: http://${CORE_SERVICE_CONTAINER_NAME}:8080 # Dont change protocal here since its service to service communication
+      CORE_SERVICE_ROOT_CONTEXT: ${CORE_SERVICE_ROOT_CONTEXT}
+      IMS_SERVICE_HOSTNAME: http://${IMS_SERVICE_CONTAINER_NAME}:8080 # Dont change protocal here since its service to service communication
+      IMS_SERVICE_ROOT_CONTEXT: ${IMS_SERVICE_ROOT_CONTEXT}
+      KEYCLOAK_SV_REALM: ${KEYCLOAK_SV_REALM}
+      KEYCLOAK_SV_CLIENT_NAME: ${KEYCLOAK_SV_CLIENT_NAME}
+      KEYCLOAK_SV_CLIENT_ID: ${KEYCLOAK_SV_CLIENT_ID}
+      KEYCLOAK_SV_CLIENT_SECRET: ${KEYCLOAK_SV_CLIENT_SECRET}
+      SV_FRONTEND: http://${NGINX_CONTAINER_NAME}:81 # Dont change protocal here since its service to service communication
+    networks:
+      - slidevault
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    restart: on-failure
+    volumes:
+      - ../configs/gateway/application.yml:/app/main/application.yml
+    healthcheck:
+      test: "curl --fail --silent http://localhost:8080/actuator/health | grep UP || exit 1"
+      interval: 20s
+      timeout: 5s
+      retries: 10
+    extra_hosts:
+      - "${SV_HOSTNAME}:${SV_HOST_IP}"
+
+  ims:
+    restart: unless-stopped
+    image: ${IMS_SERVICE_REPO}
+    container_name: ${IMS_SERVICE_CONTAINER_NAME}
+    depends_on:
+      bioformat:
+        condition: service_started
+      core:
+          condition: service_healthy
+    environment:
+      IMS_STORAGE_PATH: /data/images
+      IMS_SERVICE_ROOT_CONTEXT: ${IMS_SERVICE_ROOT_CONTEXT}
+      SLIDEVAULT_CORE: http://${CORE_SERVICE_CONTAINER_NAME}:8080${CORE_SERVICE_ROOT_CONTEXT}
+      IMS_SERVICE_EXTERNAL_HOSTNAME: ${SV_HTTP_PROTOCOL}://${SV_HOSTNAME}${IMS_SERVICE_ROOT_CONTEXT}
+      IMS_SERVICE_INTERNAL_HOSTNAME: http://${IMS_SERVICE_CONTAINER_NAME}:8080${IMS_SERVICE_ROOT_CONTEXT}
+      IIP_SERVER_HOSTNAME: http://${IIP_CYTO_CONTAINER_NAME}:80
+      KEYCLOAK_HOSTNAME: http://${KEYCLOAK_CONTAINER_NAME}:8080${KEYCLOAK_ROOT_CONTEXT} #Dont change protocol here. Its container to container communication
+      KEYCLOAK_SV_REALM: ${KEYCLOAK_SV_REALM}
+      KEYCLOAK_SV_CLIENT_ID: ${KEYCLOAK_SV_CLIENT_ID}
+      KEYCLOAK_SV_CLIENT_SECRET: ${KEYCLOAK_SV_CLIENT_SECRET}
+      KEYCLOAK_SV_SERVICE_ACCOUNT_USERNAME: ${KEYCLOAK_SV_SERVICE_ACCOUNT_USERNAME}
+      KEYCLOAK_SV_SERVICE_ACCOUNT_PASSWORD: ${KEYCLOAK_SV_SERVICE_ACCOUNT_PASSWORD}
+    volumes:
+      - ${IMS_STORAGE_PATH}:/data/images:rw
+      - ${IMS_BUFFER_PATH}:/tmp/uploaded:rw
+    networks:
+      - slidevault
+    extra_hosts:
+      - "${SV_HOSTNAME}:${SV_HOST_IP}"
+
+  memcached:
+    container_name: memcached
+    restart: unless-stopped
+    build:
+      context: ../
+      dockerfile: ./configs/memcached/Dockerfile
+    networks:
+      - slidevault
+
+  rabbitmq:
+    container_name: ${RABBITMQ_CONTAINER_NAME}
+    restart: unless-stopped
+    image: ${RABBITMQ_REPO}
+    environment:
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 10
+    networks:
+      - slidevault
+
+  postgresql:
+    container_name: ${POSTGRES_CONTAINER_NAME}
+    restart: unless-stopped
+    image: ${POSTGIS_REPO}
+    #    mem_limit: 8g
+    command: ["postgres", "-c", "log_statement=all"]
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgis_data:/var/lib/postgresql:rw
+    healthcheck:
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U ${POSTGRES_USERNAME} -d ${POSTGRES_DB}'"]
+      interval: 2s
+      timeout: 5s
+      retries: 20
+    ports:
+      - 5432:5432
+    networks:
+      - slidevault
+
+  mongodb:
+    container_name: ${MONGODB_CONTAINER_NAME}
+    restart: unless-stopped
+    image: ${MONGODB_REPO}
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_INIT_DATABASE}
+      MONGO_INIT_USERNAME: ${MONGO_INIT_USERNAME}
+      MONGO_INIT_PASSWORD: ${MONGO_INIT_PASSWORD}
+    volumes:
+      - ../configs/mongo/init.sh:/docker-entrypoint-initdb.d/mongo-init.sh:ro
+      - mongodb_data:/data/db:rw
+    healthcheck:
+      test: echo 'db.stats().ok' | mongo localhost:27017/test --quiet
+      interval: 30s
+      timeout: 30s
+      retries: 10
+    # ports:
+    #   - 27017:27017
+    networks:
+      - slidevault
+
+  slurm:
+    container_name: ${SLURM_CONTAINER_NAME}
+    restart: unless-stopped
+    # hostname: cytomine-slurm
+    build:
+      context: ../
+      dockerfile: configs/slurm/Dockerfile
+    privileged: true
+    volumes:
+      - slurm_data:/var/lib/mysql:rw
+      - singularity_images:/data/softwares/images:rw
+      - /etc/localtime:/etc/localtime:ro
+    extra_hosts:
+      - "${SV_HOSTNAME}:${SV_HOST_IP}"
+    networks:
+      - slidevault
+
+  iip_off:
+    container_name: ${IIP_OFF_CONTAINER_NAME}
+    restart: unless-stopped
+    build:
+      context: ../
+      dockerfile: configs/iipOff/Dockerfile
+    depends_on:
+      - memcached
+    privileged: true
+    environment:
+      - NB_IIP_PROCESS=${NB_IIP_PROCESS}
+    volumes:
+      - ${IMS_STORAGE_PATH}:/data/images:rw
+    links:
+      - memcached:memcached
+    extra_hosts:
+      - "${SV_HOSTNAME}:${SV_HOST_IP}"
+    networks:
+      - slidevault
+
+  iip_cyto:
+    container_name: ${IIP_CYTO_CONTAINER_NAME}
+    restart: unless-stopped
+    build:
+      context: ../
+      dockerfile: configs/iipCyto/Dockerfile
+    privileged: true
+    depends_on:
+      - memcached
+    environment:
+      - NB_IIP_PROCESS=${NB_IIP_PROCESS}
+    volumes:
+      - ${IMS_STORAGE_PATH}:/data/images:rw
+    links:
+      - memcached:memcached
+    extra_hosts:
+      - "${SV_HOSTNAME}:${SV_HOST_IP}"
+    networks:
+      - slidevault
+
+  bioformat:
+    restart: unless-stopped
+    container_name: ${BIOFORMAT_CONTAINER_NAME}
+    image: ${BIOFORMAT_REPO}
+    environment:
+      - BIOFORMAT_PORT=${BIOFORMAT_PORT}
+    volumes:
+      - ${IMS_STORAGE_PATH}:/data/images:rw
+    extra_hosts:
+      - "${SV_HOSTNAME}:${SV_HOST_IP}"
+    networks:
+      - slidevault
+
+  software_router:
+    container_name: ${SOFTWARE_ROUTER_CONTAINER_NAME}
+    restart: unless-stopped
+    build:
+      context: ../
+      dockerfile: configs/software_router/Dockerfile
+    privileged: true
+    depends_on:
+      - rabbitmq
+      - slurm
+    volumes:
+      - singularity_images:/data/softwares/images
+      - /var/run/docker.sock:/var/run/docker.sock
+    links:
+      - rabbitmq:rabbitmq
+      - slurm:slurm
+    extra_hosts:
+      - "${SV_HOSTNAME}:${SV_HOST_IP}"
+    networks:
+      - slidevault
+
+volumes:
+# Enable below to generate new volumes for container.
+  postgis_data: {}
+  mongodb_data: {}
+  slurm_data: {}
+  singularity_images: {}
+
+# Enable below to re-use existing data volumes with docker compose.
+  # postgis_data: 
+  #   name: postgis_data
+  #   external: true
+  # mongodb_data:
+  #   name: mongodb_data
+  #   external: true
+  # slurm_data: 
+  #   name: slurm_data
+  #   external: true
+  # singularity_images: 
+  #   name: singularity_images
+  #   external: true
+
+networks:
+  slidevault:
+    # name: slidevault-app
+

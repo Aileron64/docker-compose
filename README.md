@@ -1,106 +1,54 @@
-# CYTOMINE DOCKER DEPLOYMENT #
-
-This is the starting point to install Cytomine.
-The Dockerfiles are into [this repository](https://github.com/cytomine/Dockerfiles)
-
-## How to install it
-
-- Fill the configuration.sh file
-
-```shell
-# Names of the main services.
-CORE_URL=dev.hurondigitalpathology.com
-IMS_URL1=ims.hurondigitalpathology.com
-IMS_URL2=ims2.hurondigitalpathology.com
-UPLOAD_URL=upload.hurondigitalpathology.com
-```
-- If you use SSL/TLS
-####  Make a cert dir and add your SSL/TLS certificate and key
-
-```shell
-mkdir "cert"
-```
-#### Change configuration.sh params  
-Replace certificate.crt and certificate.key with your filenames
-from cert dir. Use filename only.
-
-```shell
-PROTOCOL="https"
-
-# SSL/TLS certificate and key for this domain.
-SSL_CRT="certificate.crt"
-SSL_KEY="certificate.key"
-```
-
-- Run the init.sh script
-```shell
-init.sh
-```
-- Run the generated start_deploy.sh script
-```shell
-start_deploy.sh
-```
-
-For more information, see our [installation instructions](https://doc.cytomine.org/admin-guide/install)
-
-## Docker Compose
-
-```shell
-SlideVault Service
-Usage: ./compose.sh {install|update|clean|remove|scale|start|stop|status|logs}
-```
-
-### Install or update containers
-
-For a while both of commands do the same
-```shell
-./compose.sh install
-```
-```shell
-./compose.sh update
-```
-
-### Remove
-**clean** - removes containers but keeps volumes.
-```shell
-./compose.sh clean
-```
-
-**remove** - removes all the containers and volumes.
-```shell
-./compose.sh remove
-```
-
-### Start/stop
-**start** - starts stopped containers.
-```shell
-./compose.sh start
-```
-
-**stop** - stops all the containers.
-```shell
-./compose.sh stop
-```
-
-### Scale
-**TBD**
-
-### Maintenance
-**logs** - Shows logs for all the containers.
-```shell
-./compose.sh logs
-```
-
-**ps** - Shows statuses of all the containers.
-```shell
-./compose.sh ps
-```
+# Prerequisite
+    1. Docker
+    2. Docker Compose
+    3. Linux utilities
+        a. envsubst - to populate environment variables
+        b. dig - to get exact IP of the SV Host
+        c. aws - to login and fetch the docker images
+# Running the application
+1. Set domain name and docker image versions in .env file present under compose folder
+2. Copy certificate as certificate.crt and key as key.key inside configs/nginx/cert folder. If the cert folder does not exist, create
+2. Run ./init.sh from root folder
+3. Run ./start_deploy.sh
 
 
-## Remarks
+# Troubleshooting & Investigations:
+    Gateway startup: If application is not getting up, most likely is due to gateway. Gateway needs access to keycloak and the call goes from outside container network to host. Sometimes the host machine does not allow the call from container to host. If ufw is installed, a rule can be configured to let container access host. Below are some steps:
 
-When using our software, we kindly ask you to show our website URL and our logo in all your work (web site, publications, studies, oral presentations, manuals, ...). If you use Cytomine for scientific purpose, please cite Marée et al., Bioinformatics 2016 as reference paper. See our license files for additional details.
-- URL: http://www.cytomine.org/
-- Logo: [Available here](https://doc.cytomine.org/images/cytomine-org-logo.png)
-- Scientific paper: Raphaël Marée, Loïc Rollus, Benjamin Stévens, Renaud Hoyoux, Gilles Louppe, Rémy Vandaele, Jean-Michel Begon, Philipp Kainz, Pierre Geurts and Louis Wehenkel. Collaborative analysis of multi-gigapixel imaging data using Cytomine, Bioinformatics, DOI: 10.1093/bioinformatics/btw013, 2016. http://dx.doi.org/10.1093/bioinformatics/btw013
+    a. Check system logs and there should be a ufw block appearing if gateway is failing
+        sudo tail -f /var/log/syslog
+
+    b. Capture the network ip from slidevault docker network (say 172.27.0.0) and run below command 
+        sudo ufw allow from 172.27.0.0/16 to any port 443 proto tcp comment 'HTTPS'
+
+    c. Restart ufw
+        sudo ufw reload && sudo ufw restart
+
+    d. Stop the application and start again (restart might not work)
+
+# Improvements:
+    1. If you run docker compose down (instead of stop) to clean the containers, it removes the slidevault network as well. Removing docker network will cause new IP to be acquired by slidevault network on next start. This will lead to same issue reported above under investigation section. To mitigate this we can assign static ip to our slidevault network in compose file
+    2. Gateway healthcheck is not working. When we would run it inside K8 cluster, healthcheck becomes critical. Its quite strarightforward to make it working
+
+
+
+======================================================================================================================================================================
+# Keycloak
+## Basic Information:
+    1. URL is slidevault hostname followed by /auth (https://ims-ai.hurondigitalpathology.com/auth). 
+    2. Credential admin/Huron@123
+    3. On login into Keycloak, select slidevault as realm on top left dropdown
+
+## Enabling Forgot Password & Rememeber me option for SV Login UI
+    1. After selecting slidevault as realm on Keycloak home page, go to Realm Settings Tab
+    2. Click on Login tab
+    3. Enable options for Forgot Password & Rememeber me
+    4. On the same page, select Email tab (next to Login tab)
+    5. Configure SMTP details for Forgot password functionality
+
+
+## Important Points
+    1. Every user authenticated via SSO/SAML needs to be already present in keycloak. So to make sure that is the case changes are done in core where it creates/updates a user in Keycloak
+    2. Dont touch default realm in Keycloak (named as keycloak) as this is managed by Keycloak itself
+    3. Before starting up keycloak, the database should already exist. This is done in start_deploy.sh
 

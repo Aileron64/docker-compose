@@ -1,0 +1,63 @@
+server:
+  port: 8080
+  error:
+    whitelabel:
+      enabled: false
+#  forward-headers-strategy: framework
+#  servlet:
+#    session:
+#      cookie.same-site: none
+spring:
+  mvc:
+    async:
+      request-timeout: 30000
+  cloud:
+    gateway:
+      default-filters:
+        - TokenRelay=
+      routes:
+        - id: core-service
+          uri: ${CORE_SERVICE_HOSTNAME}
+          predicates:
+            - Path=${app.scanner.context-path}${CORE_SERVICE_ROOT_CONTEXT}/**, ${CORE_SERVICE_ROOT_CONTEXT}/**
+          filters:
+            - ScannerAuthenticationFilter
+            - RewritePath=${app.scanner.context-path}/(?<segment>.*),/$\{segment}
+        - id: ims-service
+          uri: ${IMS_SERVICE_HOSTNAME}
+          predicates:
+            - Path=${app.scanner.context-path}${IMS_SERVICE_ROOT_CONTEXT}/**, ${IMS_SERVICE_ROOT_CONTEXT}/**
+          filters:
+            - ScannerAuthenticationFilter
+            - RewritePath=${app.scanner.context-path}/(?<segment>.*),/$\{segment}
+        - id: ui-service
+          uri: ${SV_FRONTEND}
+          predicates:
+            - Path=/**
+  security:
+    oauth2:
+      client:
+        registration:
+          gateway:
+            provider: keycloak
+            client-name: ${KEYCLOAK_SV_CLIENT_NAME}
+            client-id: ${KEYCLOAK_SV_CLIENT_ID}
+            client-secret: ${KEYCLOAK_SV_CLIENT_SECRET}
+            scope: openid, profile
+            authorization-grant-type: authorization_code
+            redirect-uri: ${GATEWAY_HOSTNAME}/login/oauth2/code/{registrationId}
+        provider:
+          keycloak:
+            issuer-uri: ${KEYCLOAK_HOSTNAME}/realms/${KEYCLOAK_SV_REALM}
+logging:
+  level:
+    org.springframework:
+      security: "info"
+    root: "info"
+#management:
+#  health:
+#    mail:
+#      enabled: false
+app:
+  scanner:
+    context-path: /scanner

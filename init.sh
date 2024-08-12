@@ -16,57 +16,41 @@
 # limitations under the License.
 #
 FILES=(
-    configs/core/Dockerfile
-    configs/hl7/Dockerfile
-    configs/nginx/Dockerfile
-    configs/memcached/Dockerfile
-    configs/iipCyto/Dockerfile
-    configs/iipOff/Dockerfile
-    configs/ims/Dockerfile
-    configs/slurm/Dockerfile
-    configs/software_router/Dockerfile
-    configs/web_ui/Dockerfile
-    configs/core/cytomineconfig.groovy
-    configs/ims/ims-config.groovy
-    configs/iipCyto/nginx.conf.sample
-    configs/iipOff/nginx.conf.sample
-    configs/nginx/nginx.conf
-    configs/nginx/nginxHttp.conf
-    configs/nginx/dist/configuration.json
     configs/software_router/config.groovy
-    configs/web_ui/configuration.json
     start_deploy.sh
-    compose.sh
-    compose/.env
-    hosts/core/addHosts.sh
-    hosts/ims/addHosts.sh
-    hosts/software_router/addHosts.sh
-    hosts/slurm/addHosts.sh)
+)
 
-#get all the config values.
-. ./configuration.sh
+source <(sed -E -n 's/[^#]+/export &/ p' ./compose/.env)
 
-VARIABLES=()
-while read LINE; do
-    if [[ $LINE == *"="* ]]; then
-        IFS='=' read -ra ADDR <<< "$LINE"
-        VARIABLES+=(${ADDR[0]})
-    fi
-done \
-<<< "$(cat configuration.sh)" 
-
-for i in ${FILES[@]}; do
-    if [ -f "$i.sample" ]; then
-        cp $i.sample $i
-        if [[ "$i" == *.sh ]]; then
-            chmod u+x $i
-        fi
-
-        for j in ${VARIABLES[@]}; do
-            eval sed -i "s~\\\$$j~\$$j~g" $i
-        done
+for file in ${FILES[@]}; do
+    echo "Populating environment variables in file" $file
+    envsubst < $file.sample > $file
+    if [[ "$file" == *.sh ]]; then
+        chmod u+x $file
     fi
 done
 
+# VARIABLES=()
+# while read LINE; do
+#     if [[ $LINE == *"="* ]]; then
+#         IFS='=' read -ra ADDR <<< "$LINE"
+#         VARIABLES+=(${ADDR[0]})
+#     fi
+# done \
+# # <<< "$(cat configuration.sh)" 
+
+# for i in ${FILES[@]}; do
+#     if [ -f "$i.sample" ]; then
+#         cp $i.sample $i
+#         if [[ "$i" == *.sh ]]; then
+#             chmod u+x $i
+#         fi
+
+#         for j in ${VARIABLES[@]}; do
+#             eval sed -i "s~\\\$$j~\$$j~g" $i
+#         done
+#     fi
+
 echo "Files generated."
 echo "In a production environment, it's recommended to generate your own ssh keys into the configs/software_router/keys folder."
+
