@@ -69,6 +69,9 @@ docker login -u AWS -p $(aws ecr get-login-password --region us-east-2) 78211126
 # Sometime .env file is not recognized file by docker compose so it becomes necessary to go inside compose folder and then run
 cd compose
 
+# Load variables from .env
+set -a && source .env && set +a
+
 # Run only database to create keycloak schema. 
 # Ideally it should be part of postgres container entrypoint but somehow its not working since its custom postgres image. Need to figure that out
 docker-compose -f docker-compose-combined.yml up -d postgresql
@@ -83,4 +86,6 @@ done
 docker exec  postgres psql "postgresql://$POSTGRES_USERNAME:$POSTGRES_PASSWORD@localhost:5432/$POSTGRES_DB" -c "CREATE SCHEMA IF NOT EXISTS $KEYCLOAK_SCHEMA AUTHORIZATION $POSTGRES_USERNAME;"
 
 # Run all the containers now
-SV_HOST_IP="$(dig +short $SV_HOSTNAME)" docker-compose -f docker-compose-combined.yml up -d
+SV_HOST_IP="host-gateway" docker-compose -f docker-compose-combined.yml up -d
+# Restart gateway to let it connect properly to nginx
+docker-compose -f docker-compose-combined.yml restart gateway

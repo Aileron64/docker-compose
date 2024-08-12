@@ -125,6 +125,7 @@ services:
     depends_on:
       keycloak:
         condition: service_healthy
+    restart: on-failure
     volumes:
       - ../configs/gateway/application.yml:/app/main/application.yml
     healthcheck:
@@ -202,7 +203,7 @@ services:
     volumes:
       - postgis_data:/var/lib/postgresql:rw
     healthcheck:
-      test: "exit 0"
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U ${POSTGRES_USERNAME} -d ${POSTGRES_DB}'"]
       interval: 2s
       timeout: 5s
       retries: 20

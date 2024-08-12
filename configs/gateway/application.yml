@@ -52,8 +52,8 @@ spring:
 logging:
   level:
     org.springframework:
-      security: DEBUG
-    root: debug
+      security: "info"
+    root: "info"
 #management:
 #  health:
 #    mail:
