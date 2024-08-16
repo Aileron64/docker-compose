@@ -1,0 +1,58 @@
+server:
+  servlet:
+    context-path: ${IMS_SERVICE_ROOT_CONTEXT:/ims-service}
+spring:
+  servlet:
+    multipart:
+      enabled: true
+      location: ${java.io.tmpdir}
+      max-file-size: 1000000MB
+      max-request-size: 1000000MB
+  authentication:
+    filter:
+      enabled: true
+  application:
+    name: ims
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:localhost;DB_CLOSE_ON_EXIT=FALSE
+    username: admin
+    password:
+  mvc:
+    log-request-details: true
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+slidevault:
+  core:
+    api:
+      url: ${SLIDEVAULT_CORE:http://core-service:8080/core-service}
+  ims:
+    crop:
+      maxSize: 12_000
+    path:
+      storage: ${IMS_STORAGE_PATH:/data/images}
+    server:
+      url:
+        external: ${IMS_SERVICE_EXTERNAL_HOSTNAME}
+        internal: ${IMS_SERVICE_INTERNAL_HOSTNAME}
+    iip-server:
+      url: ${IIP_SERVER_HOSTNAME:http://iip_cyto/fcgi-bin/iipsrv.fcgi}
+    async-service:
+      number-of-threads: 10
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} | %t | %-5level | %logger{1.}:%line | %msg%n"
+#  level:
+#    root: debug
+keycloak:
+  auth-server-url: ${KEYCLOAK_HOSTNAME}
+  realm: ${KEYCLOAK_SV_REALM}
+  clientId: ${KEYCLOAK_SV_CLIENT_ID}
+  clientSecret: ${KEYCLOAK_SV_CLIENT_SECRET}
+  admin:
+    username: ${KEYCLOAK_SV_SERVICE_ACCOUNT_USERNAME} #This user needs to have manage account permission
+    password: ${KEYCLOAK_SV_SERVICE_ACCOUNT_PASSWORD}
