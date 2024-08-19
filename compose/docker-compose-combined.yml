@@ -161,7 +161,7 @@ services:
     volumes:
       - ${IMS_STORAGE_PATH}:/data/images:rw
       - ${IMS_BUFFER_PATH}:/tmp/uploaded:rw
-      - ../configs/ims/application.yml:/app/main/application.yml
+      - ../configs/ims/application.yaml:/app/main/application.yaml
     networks:
       - slidevault
     extra_hosts:
