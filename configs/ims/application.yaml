@@ -44,10 +44,13 @@ slidevault:
     async-service:
       number-of-threads: 10
 logging:
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} | %t | %-5level | %logger{1.}:%line | %msg%n"
-#  level:
-#    root: debug
+#  pattern:
+#    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36}:%L - %msg%n"
+  level:
+    root: info
+    com:
+      hurondigitalpathology:
+        slidevault: info
 keycloak:
   auth-server-url: ${KEYCLOAK_HOSTNAME}
   realm: ${KEYCLOAK_SV_REALM}
