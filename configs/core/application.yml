@@ -364,10 +364,14 @@ keycloak:
   admin:
     username: ${KEYCLOAK_SV_SERVICE_ACCOUNT_USERNAME} #This user needs to have manage account permission
     password: ${KEYCLOAK_SV_SERVICE_ACCOUNT_PASSWORD}
-# logging:
-#   level:
+logging:
+  level:
+    root: INFO
 #     org.springframework: DEBUG
-#     root: INFO
+    com:
+      hurondigitalpathology:
+        slidevault: info
+
 management:
   health:
     mail:

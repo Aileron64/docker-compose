@@ -146,6 +146,7 @@ services:
       core:
           condition: service_healthy
     environment:
+      SPRING_CONFIG_LOCATION: /app/main/
       IMS_STORAGE_PATH: /data/images
       IMS_SERVICE_ROOT_CONTEXT: ${IMS_SERVICE_ROOT_CONTEXT}
       SLIDEVAULT_CORE: http://${CORE_SERVICE_CONTAINER_NAME}:8080${CORE_SERVICE_ROOT_CONTEXT}
@@ -161,6 +162,7 @@ services:
     volumes:
       - ${IMS_STORAGE_PATH}:/data/images:rw
       - ${IMS_BUFFER_PATH}:/tmp/uploaded:rw
+      - ../configs/ims/application.yaml:/app/main/application.yaml
     networks:
       - slidevault
     extra_hosts:
